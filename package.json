@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/Samareimorgan/liri-node-app#readme",
   "dependencies": {
+    "bandsintown-events": "^1.0.4",
     "dotenv": "^6.0.0",
     "moment": "^2.22.2",
     "node-spotify-api": "^1.0.7",
