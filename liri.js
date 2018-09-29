@@ -6,7 +6,7 @@ var keys =require("./key.js");
 
 var liri = {
     
-   concert: function(artist) {
+   concert: function() {
     var moment = require("moment");
     var artist = process.argv.slice(3).join(" ");
 
@@ -22,6 +22,7 @@ var liri = {
                 // ...
 
                 var info = JSON.parse(body);
+                console.log(info[0]);
                 var date = moment(info[0].datetime).format("MMM, D, YYYY  H:MM");
                   console.log("*--------- NEXT EVENT FOR " + artist+ " ----------------*");
                 
@@ -29,13 +30,14 @@ var liri = {
                   console.log("The venue location is: " + info[0].venue.city + "," + info[0].venue.region );
                   console.log("The date and time is: " + date);
                   console.log("*--------- END EVENT INFO ----------------*");
+                  liri.write();
                 }
                 
             })
         
         }
     },
-    movie: function(movieName) {
+    movie: function() {
     var movieName = process.argv.slice(3).join(" ");
 
         if(process.argv[2] === "movie-this") {
@@ -58,7 +60,8 @@ var liri = {
                 console.log("The Movie Language is: " + JSON.parse(body).Language);
                 console.log("Plot: " + JSON.parse(body).Plot);
                 console.log("Actors: " + JSON.parse(body).Actors);
-                console.log("*---------END MOVIE INFO---------------*")
+                console.log("*---------END MOVIE INFO---------------*");
+                liri.write();
 
                 }
             })
@@ -88,6 +91,7 @@ var liri = {
                 console.log("Song URL: " + songResponse.preview_url);
 
                 console.log("*---------END INFO---------------*")
+                liri.write();
             })
             .catch(function(err) {
                 console.log(err);
@@ -128,7 +132,8 @@ var liri = {
                             console.log("Album Name: " + songResponse.album.name);
                             console.log("Song URL: " + songResponse.preview_url);
             
-                            console.log("*---------END INFO---------------*")
+                            console.log("*---------END INFO---------------*");
+                            liri.write();
                         })
                         .catch(function(err) {
                             console.log(err);
@@ -137,21 +142,82 @@ var liri = {
                     }
                 
                 if(dataArr[0] === "concert-this") {
-                   
+                        
+                    var artist = JSON.parse(dataArr[1]);
+                    var queryURL = "https://rest.bandsintown.com/artists/" + artist + "/events?app_id=codingbootcamp&date=upcoming";
+                            
+                            
+                            var request = require("request");
+                            request(queryURL, function(error, response, body) {
+                                
+                
+                            // If the request is successful
+                                if (!error && response.statusCode === 200) {
+                                // ...
+                
+                                var info = JSON.parse(body);
+                                console.log(info);
+                                var moment = require("moment");
+                                var date = moment(info[0].datetime).format("MMM, D, YYYY  H:MM");
+                                  console.log("*--------- NEXT EVENT FOR " + artist+ " ----------------*");
+                                
+                                  console.log("The venue name is: " + info[0].venue.name);
+                                  console.log("The venue location is: " + info[0].venue.city + "," + info[0].venue.region );
+                                  console.log("The date and time is: " + date);
+                                  console.log("*--------- END EVENT INFO ----------------*");
+                                  liri.write();
+                                }
+                                
+                            })
+                        
                 }
+                
                 if(dataArr[0] === "movie-this") {
-                    var input = dataArr[1]; 
-                    liri.movie(input);
+                    var movieName = JSON.parse(dataArr[1]);
+                        var queryURL = "http://www.omdbapi.com/?t=" + movieName + "&y=&plot=short&apikey=trilogy";
+                
+                        var request = require("request");
+                        request(queryURL, function(error, response, body) {
+            
+                        // If the request is successful
+                            if (!error && response.statusCode === 200) {
+                            // ...
+            
+                            // Then log the Release Year for the 
+                            console.log("*---------MOVIE INFO----------------*")
+                            console.log("The movie is: " + JSON.parse(body).Title);
+                            console.log("The Year Released: " + JSON.parse(body).Year);
+                            console.log("The IMBD Rating: " + JSON.parse(body).Ratings[0].Value);
+                            console.log("The Rotten Tomatoes Rating: " + JSON.parse(body).Ratings[1].Value);
+                            console.log("Movie was Produced in: " + JSON.parse(body).Country);
+                            console.log("The Movie Language is: " + JSON.parse(body).Language);
+                            console.log("Plot: " + JSON.parse(body).Plot);
+                            console.log("Actors: " + JSON.parse(body).Actors);
+                            console.log("*---------END MOVIE INFO---------------*");
+                            liri.write();
+            
+                            }
+                        })
+                        
                 }
                 
             })
         }
 
+    },
+    write: function() {
+        var fs = require("fs");
+            fs.appendFile("log.txt","utf8", function(error, data){
+                if(error) {return console.log(error);
+                }
+
+            })
     }
-};
+}
 
 liri.concert();
 liri.movie();
 liri.spotify();
 liri.randomTxtSays();
+
 
