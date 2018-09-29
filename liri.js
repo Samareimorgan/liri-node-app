@@ -1,55 +1,105 @@
-<script src="./../dist/bit-events.min.js"></script>
 require("dotenv").config();
 
-//var keys = require("./key.js");
+var keys =require("./key.js");
+
 //var spotify = new Spotify(keys.spotify);
 
+var liri = {
+    
+   concert: function() {
+    var moment = require("moment");
+    var artist = process.argv.slice(3).join(" ");
 
+       if(process.argv[2] === "concert-this") {
+        var queryURL = "https://rest.bandsintown.com/artists/" + artist + "/events?app_id=codingbootcamp&date=upcoming";
 
-var artist = process.argv[2];
-//Bands in Town ********************************
-    function concertThis(artist) {
+            var request = require("request");
+            request(queryURL, function(error, response, body) {
+                
+
+            // If the request is successful
+                if (!error && response.statusCode === 200) {
+                // ...
+
+                
+                var info = JSON.parse(body);
+                
+                var date = moment(info[0].venue.datetime).format("MMM, D, YYYY  H:MM")
+                  console.log("*--------- NEXT EVENT FOR " + artist+ " ----------------*");
+                
+                  console.log("The venue name is: " + info[0].venue.name);
+                  console.log("The venue location is: " + info[0].venue.city + "," + info[0].venue.region );
+                  console.log("The date and time is: " + date);
+                  console.log("*--------- END EVENT INFO ----------------*");
+                }
+                
+            })
         
-        var queryURL = "https://rest.bandsintown.com/artists/" + artist + "/events?app_id=codingbootcamp";
+        }
+    },
+    movie: function() {
+    var movieName = process.argv.slice(3).join(" ");
 
-        $.ajax({
-        url: queryURL,
-        method: "GET"
-        })
-        .then(function(response) {
-            var results = response.data;
-            console.log(results);
+        if(process.argv[2] === "movie-this") {
+        var queryURL = "http://www.omdbapi.com/?t=" + movieName + "&y=&plot=short&apikey=trilogy";
 
-        // for (var i = 0; i < results.length; i++) {
-            
+            var request = require("request");
+            request(queryURL, function(error, response, body) {
 
-            //}
-        });
-    }
+            // If the request is successful
+                if (!error && response.statusCode === 200) {
+                // ...
 
-concertThis(artist);
+                // Then log the Release Year for the 
+                console.log("*---------MOVIE INFO----------------*")
+                console.log("The movie is: " + JSON.parse(body).Title);
+                console.log("The Year Released: " + JSON.parse(body).Year);
+                console.log("The IMBD Rating: " + JSON.parse(body).Ratings[0].Value);
+                console.log("The Rotten Tomatoes Rating: " + JSON.parse(body).Ratings[1].Value);
+                console.log("Movie was Produced in: " + JSON.parse(body).Country);
+                console.log("The Movie Language is: " + JSON.parse(body).Language);
+                console.log("Plot: " + JSON.parse(body).Plot);
+                console.log("Actors: " + JSON.parse(body).Actors);
+                console.log("*---------END MOVIE INFO---------------*")
 
-/*pseudo Code 
-Bands in Town -  Need to create and AJAX get, so that when concert-this is in the process.argv[2] and the artist is in the process.argv[3] the get will run.  
-Would concert-this be a function? (Hyphen seems to disrupt it, so for now i will make it concertThis and ask about the hyphen in class) .  Perhaps I need the function to be an if statement.  if(concert-this === process.argv[2]) { 
+                }
+            })
+        }
+    },
+    spotify: function() {
+        if(process.argv[2]=== "spotify-this-song") {
+            var Spotify = require("node-spotify-api");
+    
+            var spotify = new Spotify({
+                id: process.env.SPOTIFY_ID,
+                secret: process.env.SPOTIFY_SECRET
+
+            });
+        
+            var queryTerm = process.argv.slice(3).join(" ");
+
+            spotify
+            .search({ type: 'track', query: queryTerm })
+            .then(function(response) {
+                var songResponse = (response.tracks.items[0]);
+                console.log("*---------SONG INFO----------------*")
+
+                console.log("Artist Name: " + songResponse.artists[0].name);
+                console.log("Song Name: " +songResponse.name);
+                console.log("Album Name: " + songResponse.album.name);
+                console.log("Song URL: " + songResponse.preview_url);
+
+                console.log("*---------END INFO---------------*")
+            })
+            .catch(function(err) {
+                console.log(err);
+            });
+
+        }
+    },
 
 }
 
-
-
-
-function concert-this() {
-
-}
-
-node liri.js concert-this <artist/band name here>
-
-
-
-
-This will search the Bands in Town Artist Events API ("https://rest.bandsintown.com/artists/" + artist + "/events?app_id=codingbootcamp") for an artist and render the following information about each event to the terminal:
-
-
-Name of the venue
-Venue location
-Date of the Event (use moment to format this as "MM/DD/YYYY") */
+liri.concert();
+liri.movie();
+liri.spotify();
